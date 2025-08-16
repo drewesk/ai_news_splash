@@ -8,34 +8,29 @@ const colors = {
   blueBot: "#0F1E50",
 };
 
-// Buttons -----------------------------------------------------
-type ButtonProps = { children: React.ReactNode };
-
-const LimeButton: React.FC<ButtonProps> = ({ children }) => (
-  <a href="#" className="limebtn">
+// ---------------- Buttons ----------------
+const Button: React.FC<{
+  variant: "lime" | "outline";
+  children: React.ReactNode;
+}> = ({ variant, children }) => (
+  <a href="#" className={variant === "lime" ? "limebtn" : "outlinebtn"}>
     <span>{children}</span>
   </a>
 );
 
-const OutlineButton: React.FC<ButtonProps> = ({ children }) => (
-  <a href="#" className="outlinebtn">
-    {children}
-  </a>
-);
-
-// Marquee -----------------------------------------------------
-// repeat the text until it's long enough to fill the viewport on first frame
-const repeatToMinChars = (s: string, min: number = 180): string => {
+// ---------------- Marquee ----------------
+const repeatToMinChars = (s: string, min: number = 180) => {
   let out = s.trim();
   const base = s.trim();
   while (out.length < min) out += " " + base;
   return out;
 };
 
-type MarqueeProps = { text: string; reverse?: boolean };
-
-const Marquee: React.FC<MarqueeProps> = ({ text, reverse = false }) => {
-  const stream = repeatToMinChars(text, 200); // bump this number if you want denser fill
+const Marquee: React.FC<{ text: string; reverse?: boolean }> = ({
+  text,
+  reverse = false,
+}) => {
+  const stream = repeatToMinChars(text, 200);
   return (
     <div className="mq">
       <div className={`scroll ${reverse ? "rev" : ""}`}>
@@ -48,13 +43,36 @@ const Marquee: React.FC<MarqueeProps> = ({ text, reverse = false }) => {
   );
 };
 
-// App ---------------------------------------------------------
+// ---------------- Reusable Card Components ----------------
+type Article = { title: string; summary: string; date: string };
+type Testimonial = { quote: string; name: string };
+
+const ArticleCard: React.FC<{ article: Article }> = ({ article }) => (
+  <article className="card flexCol">
+    <div className="eyebrow">Update</div>
+    <h3 className="cardTitle">{article.title}</h3>
+    <p className="excerpt">{article.summary}</p>
+    <div className="spacer" />
+    <div className="meta">{article.date}</div>
+  </article>
+);
+
+const TestimonialCard: React.FC<{ testimonial: Testimonial }> = ({
+  testimonial,
+}) => (
+  <figure className="tcard flexCol">
+    <blockquote className="grow">“{testimonial.quote}”</blockquote>
+    <figcaption>— {testimonial.name}</figcaption>
+  </figure>
+);
+
+// ---------------- App ----------------
 const App: React.FC = () => {
   const marqueeWords = ["DEFEND", "REPORT", "SHIP", "HACK", "BUILD"].join(
     "   "
   );
 
-  const articles = [
+  const articles: Article[] = [
     {
       title: "EU AI Act: 30-Day Starter",
       summary: "Scope mapping, risk log, supplier attestation—quick wins.",
@@ -72,7 +90,7 @@ const App: React.FC = () => {
     },
   ];
 
-  const testimonials = [
+  const testimonials: Testimonial[] = [
     { quote: "We shipped an eval gate in a weekend.", name: "Security Eng." },
     {
       quote: "Mapped our pilot to AI Act and unblocked enterprise.",
@@ -93,9 +111,11 @@ const App: React.FC = () => {
           <span className="dot" /> AINews<span className="accent">Box</span>
         </div>
         <div className="links">
-          <a href="#">News</a>
-          <a href="#">Labs</a>
-          <a href="#">Advocacy</a>
+          {["News", "Labs", "Advocacy"].map((link) => (
+            <a key={link} href="#">
+              {link}
+            </a>
+          ))}
           <a href="#" className="pill">
             Pricing
           </a>
@@ -119,8 +139,8 @@ const App: React.FC = () => {
             sharp.
           </p>
           <div className="ctaRow">
-            <LimeButton>Start Free</LimeButton>
-            <OutlineButton>Explore Labs</OutlineButton>
+            <Button variant="lime">Start Free</Button>
+            <Button variant="outline">Explore Labs</Button>
           </div>
         </div>
       </header>
@@ -128,18 +148,11 @@ const App: React.FC = () => {
       <Marquee text={marqueeWords} />
       <Marquee text={marqueeWords} reverse />
 
-      {/* sections unchanged */}
       <section className="section light">
         <h2 className="sectionTitle">Latest analysis &amp; news</h2>
         <div className="flexRow wrap gap">
-          {articles.map((a, i) => (
-            <article key={i} className="card flexCol">
-              <div className="eyebrow">Update</div>
-              <h3 className="cardTitle">{a.title}</h3>
-              <p className="excerpt">{a.summary}</p>
-              <div className="spacer" />
-              <div className="meta">{a.date}</div>
-            </article>
+          {articles.map((a) => (
+            <ArticleCard key={a.title} article={a} />
           ))}
         </div>
       </section>
@@ -147,11 +160,8 @@ const App: React.FC = () => {
       <section className="section dark">
         <h2 className="sectionTitle">What people are saying</h2>
         <div className="flexRow wrap gap">
-          {testimonials.map((t, i) => (
-            <figure key={i} className="tcard flexCol">
-              <blockquote className="grow">“{t.quote}”</blockquote>
-              <figcaption>— {t.name}</figcaption>
-            </figure>
+          {testimonials.map((t) => (
+            <TestimonialCard key={t.name} testimonial={t} />
           ))}
         </div>
       </section>
@@ -162,7 +172,7 @@ const App: React.FC = () => {
             <h3 className="bandTitle">Join the future of AI policy</h3>
             <p>Free tier available. Upgrade anytime for full access.</p>
           </div>
-          <LimeButton>Get Started</LimeButton>
+          <Button variant="lime">Get Started</Button>
         </div>
       </section>
 
@@ -170,7 +180,6 @@ const App: React.FC = () => {
         © {new Date().getFullYear()} AI Policy News &amp; Advocacy.
       </footer>
 
-      {/* inline CSS variables are referenced by index.css; colors object kept here for clarity */}
       <style>{`
         :root{
           --neon: ${colors.neon};
